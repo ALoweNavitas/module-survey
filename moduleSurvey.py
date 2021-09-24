@@ -12,9 +12,8 @@ import keyring
 from datetime import datetime
 import logevent
 
-dir = os.chdir(r'C:\Users\adam_\Documents\GitHub\Navitas\module-survey')
-cnx = sqlite3.connect('moduleSurvey.db')
-username = 'a.lowe@sae.edu'
+os.chdir(os.getcwd())
+dir = os.getcwd()
 
 # Delete the file
 try:
@@ -22,14 +21,29 @@ try:
 except: 
     pass
 
+# Variables
+modRegDB = os.environ.get('modRegDB') # Access the system Enviroment Variables to get the modReg SQL path
+attendanceDB = os.environ.get('attendanceDB')
+chromedriver = os.environ.get('chromedriverPath')
+NAV_USER = os.environ.get('NAV_USER')
+NAV_PASS = os.environ.get('NAV_PASS')
+SURVEY_USER = os.environ.get('SURVEY_USER')
+SURVEY_PASS= os.environ.get('SURVEY_PASS')
+emailAddress = os.environ.get('EMAIL_USER')
+emailPassword = os.environ.get('EMAIL_PASS')
+keysJSON = os.environ.get('keysJSON')
+moduleSurveyDB = os.environ.get('moduleSurveyDB')
+
+# Connect to the SQL database
+cnx = sqlite3.connect(moduleSurveyDB)
+
 # Call the web browser
 chrome_options = webdriver.ChromeOptions()
-prefs = {'download.default_directory' : r'C:\Users\adam_\Documents\GitHub\Navitas\module-survey'} # Changes the download directory
+prefs = {'download.default_directory' : str(dir)} # Changes the download directory
 chrome_options.add_experimental_option('prefs', prefs)
 chrome_options.add_argument("--window-size=1920, 1080") # Can be changed
 chrome_options.add_argument("--headless")
-path = 'chromedriver.exe'
-browser = webdriver.Chrome(path, options=chrome_options)
+browser = webdriver.Chrome(chromedriver, options=chrome_options)
 
 # Navigate to the chosen website 
 try:
@@ -44,8 +58,8 @@ except Exception as error:
 bar = Bar('Downloading file...', max=30)
 def exportdata():
     try:
-        browser.find_element_by_css_selector('#user').send_keys(username)
-        browser.find_element_by_css_selector('#password').send_keys(keyring.get_password('Module Survey', username))
+        browser.find_element_by_css_selector('#user').send_keys(SURVEY_USER)
+        browser.find_element_by_css_selector('#password').send_keys(SURVEY_PASS)
         browser.find_element_by_xpath('//*[@id="loginform"]/div[2]/div/p/button').click()
         browser.find_element_by_css_selector('#xls').click()
         browser.find_element_by_css_selector('#panel-4 > div.panel-body > div:nth-child(1) > div > label:nth-child(4)').click()
@@ -79,7 +93,7 @@ except Exception as error:
 
 # Google Sheets Setup
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-SERVICE_ACCOUNT_FILE = 'keys.json'
+SERVICE_ACCOUNT_FILE = keysJSON
 credentials = None
 credentials = service_account.Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE, scopes=SCOPES)
